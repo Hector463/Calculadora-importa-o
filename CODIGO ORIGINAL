@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Importação com Valor Declarado</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 30px;
+}
+.container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 550px;
+}
+h1 {
+  text-align: center;
+  color: #333;
+}
+label {
+  display: block;
+  margin-top: 15px;
+  color: #555;
+}
+input, select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+#resultado {
+  margin-top: 20px;
+  background: #e9ecef;
+  padding: 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  color: #333;
+}
+.taxas-container label {
+  margin-top: 10px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Calculadora de Importação com Valor Declarado</h1>
+
+<label for="valorReal">Valor real do produto (USD):</label>
+<input type="number" id="valorReal" placeholder="Digite o valor real do produto" step="0.01">
+
+<label for="valorDeclarado">Valor declarado do produto (USD):</label>
+<input type="number" id="valorDeclarado" placeholder="Valor que consta na nota" step="0.01">
+
+<label for="frete">Frete (USD):</label>
+<input type="number" id="frete" placeholder="Digite o valor do frete" step="0.01">
+
+<label for="dolar">Cotação do Dólar (R$):</label>
+<input type="number" id="dolar" placeholder="Ex: 5.20" step="0.01" value="5.20">
+
+<label for="estado">Escolha o estado:</label>
+<select id="estado">
+  <option value="SP">SP</option>
+  <option value="RJ">RJ</option>
+  <option value="MG">MG</option>
+  <option value="PR">PR</option>
+  <option value="RS">RS</option>
+  <option value="SC">SC</option>
+</select>
+
+<div class="taxas-container">
+<h3>Defina ICMS e IOF por estado (%)</h3>
+
+<label for="icms-sp">ICMS SP (%):</label>
+<input type="number" id="icms-sp" value="12" step="0.01">
+<label for="iof-sp">IOF SP (%):</label>
+<input type="number" id="iof-sp" value="6.38" step="0.01">
+
+<label for="icms-rj">ICMS RJ (%):</label>
+<input type="number" id="icms-rj" value="18" step="0.01">
+<label for="iof-rj">IOF RJ (%):</label>
+<input type="number" id="iof-rj" value="6.38" step="0.01">
+
+<label for="icms-mg">ICMS MG (%):</label>
+<input type="number" id="icms-mg" value="17" step="0.01">
+<label for="iof-mg">IOF MG (%):</label>
+<input type="number" id="iof-mg" value="6.38" step="0.01">
+
+<label for="icms-pr">ICMS PR (%):</label>
+<input type="number" id="icms-pr" value="12" step="0.01">
+<label for="iof-pr">IOF PR (%):</label>
+<input type="number" id="iof-pr" value="6.38" step="0.01">
+
+<label for="icms-rs">ICMS RS (%):</label>
+<input type="number" id="icms-rs" value="18" step="0.01">
+<label for="iof-rs">IOF RS (%):</label>
+<input type="number" id="iof-rs" value="6.38" step="0.01">
+
+<label for="icms-sc">ICMS SC (%):</label>
+<input type="number" id="icms-sc" value="12" step="0.01">
+<label for="iof-sc">IOF SC (%):</label>
+<input type="number" id="iof-sc" value="6.38" step="0.01">
+</div>
+
+<h2>Resultado estimado:</h2>
+<div id="resultado"></div>
+</div>
+
+<script>
+const valorRealInput = document.getElementById("valorReal");
+const valorDeclaradoInput = document.getElementById("valorDeclarado");
+const freteInput = document.getElementById("frete");
+const dolarInput = document.getElementById("dolar");
+const estadoInput = document.getElementById("estado");
+
+const icmsInputs = {
+  "SP": document.getElementById("icms-sp"),
+  "RJ": document.getElementById("icms-rj"),
+  "MG": document.getElementById("icms-mg"),
+  "PR": document.getElementById("icms-pr"),
+  "RS": document.getElementById("icms-rs"),
+  "SC": document.getElementById("icms-sc")
+};
+
+const iofInputs = {
+  "SP": document.getElementById("iof-sp"),
+  "RJ": document.getElementById("iof-rj"),
+  "MG": document.getElementById("iof-mg"),
+  "PR": document.getElementById("iof-pr"),
+  "RS": document.getElementById("iof-rs"),
+  "SC": document.getElementById("iof-sc")
+};
+
+const resultadoDiv = document.getElementById("resultado");
+
+function calcular() {
+  const valorRealUSD = parseFloat(valorRealInput.value) || 0;
+  const valorDeclaradoUSD = parseFloat(valorDeclaradoInput.value) || 0;
+  const freteUSD = parseFloat(freteInput.value) || 0;
+  const dolar = parseFloat(dolarInput.value) || 5.2;
+  const estado = estadoInput.value;
+
+  const icms = (parseFloat(icmsInputs[estado].value) || 0) / 100;
+  const iof = (parseFloat(iofInputs[estado].value) || 0) / 100;
+
+  // Converte para reais
+  const valorReal = valorRealUSD * dolar;
+  const valorDeclarado = valorDeclaradoUSD * dolar;
+  const frete = freteUSD * dolar;
+
+  // Imposto de importação (60% sobre valor declarado)
+  const impostoImportacao = valorDeclarado * 0.6;
+
+  // ICMS sobre valor declarado + imposto
+  const icmsValor = (valorDeclarado + impostoImportacao) * icms;
+
+  // IOF sobre valor declarado + imposto + ICMS
+  const iofValor = (valorDeclarado + impostoImportacao + icmsValor) * iof;
+
+  // Total estimado (produto + frete + impostos) baseado no valor declarado
+  const totalEstimado = valorDeclarado + frete + impostoImportacao + icmsValor + iofValor;
+
+  resultadoDiv.innerHTML = `
+    <strong>Com base no valor declarado (USD ${valorDeclaradoUSD.toFixed(2)}):</strong><br>
+    Imposto de importação (60%): R$ ${impostoImportacao.toFixed(2)}<br>
+    ICMS (${(icms*100).toFixed(2)}% sobre produto + imposto): R$ ${icmsValor.toFixed(2)}<br>
+    IOF (${(iof*100).toFixed(2)}%): R$ ${iofValor.toFixed(2)}<br>
+    Frete: R$ ${frete.toFixed(2)}<br>
+    <strong>Total estimado (R$): ${totalEstimado.toFixed(2)}</strong><br><br>
+
+    <strong>Valor real do produto (USD ${valorRealUSD.toFixed(2)}):</strong><br>
+    Valor real convertido: R$ ${valorReal.toFixed(2)}
+  `;
+}
+
+// Atualiza automaticamente ao digitar qualquer valor
+[
+  valorRealInput, valorDeclaradoInput, freteInput, dolarInput, estadoInput,
+  ...Object.values(icmsInputs), ...Object.values(iofInputs)
+].forEach(el => el.addEventListener("input", calcular));
+
+calcular();
+</script>
+</body>
+</html>
